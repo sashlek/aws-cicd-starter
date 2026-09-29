@@ -45,7 +45,7 @@ pipeline {
                 }
             }
         }
-        
+
     post {
         success {
             echo 'Pipeline completed successfully! Infrastructure is up and configured.'
@@ -55,3 +55,5 @@ pipeline {
         }
     }
 }
+
+
