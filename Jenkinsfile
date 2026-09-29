@@ -32,14 +32,20 @@ pipeline {
 
         stage('Ansible Configuration') {
             steps {
-                dir('ansible') {
-                    echo 'Running Ansible playbook to configure server and deploy container...'
-                    sh 'ansible-playbook -i inventory.ini playbook.yml'
+                script {
+                    // Grab the dynamic IP directly from Terraform output
+                    def ec2Ip = sh(script: 'cd terraform && terraform output -raw instance_public_ip', returnStdout: true).trim()
+                    echo "Got dynamic EC2 IP: ${ec2Ip}"
+
+                    dir('ansible') {
+                        echo 'Running Ansible playbook against the new instance...'
+                        // Pass the dynamic IP directly to Ansible, bypassing static inventory limitations
+                        sh "ansible-playbook -i '${ec2Ip},' -u ubuntu --private-key ~/.ssh/id_ed25519 playbook.yml"
+                    }
                 }
             }
         }
-    }
-
+        
     post {
         success {
             echo 'Pipeline completed successfully! Infrastructure is up and configured.'
