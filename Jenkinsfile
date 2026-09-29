@@ -22,8 +22,10 @@ pipeline {
                     echo 'Initializing Terraform...'
                     sh 'terraform init'
                     
-                    echo 'Applying Terraform infrastructure...'
-                    sh 'terraform apply -auto-approve'
+                    echo 'Applying Terraform infrastructure with Jenkins Secret Key...'
+                    withCredentials([string(credentialsId: 'docker-vm-2', variable: 'SSH_PUB_KEY')]) {
+                        sh 'terraform apply -auto-approve -var="public_key_content=${SSH_PUB_KEY}"'
+                    }
                 }
             }
         }

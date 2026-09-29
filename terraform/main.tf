@@ -78,8 +78,13 @@ resource "aws_instance" "app_server" {
   }
 }
 
-# Register your local public key in AWS
+# Variable for the public key coming from Jenkins Credentials
+variable "public_key_content" {
+  type = string
+}
+
+# Register the public key in AWS
 resource "aws_key_pair" "deployer" {
   key_name   = "devops-starter-key"
-  public_key = file("~/.ssh/id_ed25519.pub")
+  public_key= var.public_key_content
 }
