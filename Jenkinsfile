@@ -1,9 +1,11 @@
 pipeline {
-    agent any
+    agent {
+        label 'jenkins-agent'
+    }
 
     environment {
         AWS_REGION = 'eu-central-1'
-        // Ovde kasnije mozemo dodati Credentials ID iz Jenkinsa ako je potrebno
+        // Jenkins-Credentials-ID
     }
 
     stages {
