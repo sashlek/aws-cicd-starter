@@ -1,0 +1,43 @@
+---
+- name: Clean up old repos, install Docker, and test
+  hosts: app_servers
+  become: true
+  tasks:
+    - name: Remove broken docker repo file if exists
+      file:
+        path: /etc/apt/sources.list.d/docker.list
+        state: absent
+
+    - name: Remove broken docker list from sources.list if exists
+      shell: rm -f /etc/apt/sources.list.d/*docker*
+      ignore_errors: true
+
+    - name: Update apt cache cleanly
+      apt:
+        update_cache: yes
+
+    - name: Install Docker from Ubuntu official repositories
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Ensure docker service is running and enabled
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Run a test Nginx container
+      docker_container:
+        name: test-web
+        image: nginx:alpine
+        state: started
+        restart_policy: always
+        published_ports:
+          - "80:80"
