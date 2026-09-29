@@ -61,7 +61,7 @@ terraform destroy
 
 
 
-Author
+Author:
 Saša (Wannabe DevOps Engineer learning the hard way)
 
 ---
