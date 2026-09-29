@@ -60,6 +60,7 @@ cd terraform
 terraform destroy
 
 
+
 Author
 Saša (Wannabe DevOps Engineer learning the hard way)
 
