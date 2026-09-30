@@ -3,10 +3,6 @@ pipeline {
         label 'jenkins-agent'
     }
 
-    parameters {
-        choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Choose whether to provision or destroy infrastructure')
-    }
-
     environment {
         AWS_REGION = 'eu-central-1'
     }
@@ -14,38 +10,54 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
+                echo 'Fetching code from repository...'
                 checkout scm
             }
         }
 
-        stage('Terraform Action') {
+        stage('Terraform Provision') {
             steps {
                 dir('terraform') {
+                    echo 'Initializing Terraform...'
                     sh 'terraform init'
                     
-                    script {
-                        if (params.ACTION == 'apply') {
-                            echo 'Applying Terraform infrastructure...'
-                            sh 'terraform apply -auto-approve -var="public_key_content=$(cat ~/.ssh/jenkins-agent.pub)"'
-                        } else if (params.ACTION == 'destroy') {
-                            echo 'Destroying Terraform infrastructure...'
-                            sh 'terraform destroy -auto-approve -var="public_key_content=$(cat ~/.ssh/jenkins-agent.pub)"'
-                        }
-                    }
+                    echo 'Applying Terraform infrastructure...'
+                    // We pass the Jenkins agent public SSH key dynamically to Terraform
+                    sh 'terraform apply -auto-approve -var="public_key_content=$(cat ~/.ssh/jenkins-agent.pub)"'
                 }
             }
         }
 
         stage('Ansible Configuration') {
-            when {
-                expression { params.ACTION == 'apply' }
-            }
             steps {
+                dir('terraform') {
+                    script {
+                        // Extract the newly created EC2 instance public IP dynamically
+                        def instanceIp = sh(script: "terraform output -raw instance_public_ip", returnStdout: true).trim()
+                        echo "Target EC2 Public IP is: ${instanceIp}"
+                        
+                        // Dynamically generate the Ansible inventory file with the correct IP and SSH key
+                        dir('../ansible') {
+                            writeFile file: 'inventory.ini', text: "[app_servers]\n${instanceIp} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/jenkins-agent\n"
+                            echo "Generated dynamic inventory.ini successfully."
+                        }
+                    }
+                }
+                
                 dir('ansible') {
-                    echo 'Running Ansible playbook...'
+                    echo 'Running Ansible playbook against the dynamic inventory...'
                     sh 'ansible-playbook -i inventory.ini playbook.yml'
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully! Infrastructure is up, configured, and running.'
+        }
+        failure {
+            echo 'Pipeline failed. Check the console logs above for details.'
         }
     }
 }
