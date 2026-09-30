@@ -26,10 +26,10 @@ pipeline {
                     script {
                         if (params.ACTION == 'apply') {
                             echo 'Applying Terraform infrastructure...'
-                            sh 'terraform apply -auto-approve'
+                            sh 'terraform apply -auto-approve -var="public_key_content=$(cat ~/.ssh/jenkins-agent.pub)"'
                         } else if (params.ACTION == 'destroy') {
                             echo 'Destroying Terraform infrastructure...'
-                            sh 'terraform destroy -auto-approve'
+                            sh 'terraform destroy -auto-approve -var="public_key_content=$(cat ~/.ssh/jenkins-agent.pub)"'
                         }
                     }
                 }
