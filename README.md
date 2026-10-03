@@ -58,11 +58,5 @@ When you are done testing, destroy the infrastructure:
 
 cd terraform
 terraform destroy
-
-
-
-Author:
-Saša (Wannabe DevOps Engineer learning the hard way)
-
 ---
 
