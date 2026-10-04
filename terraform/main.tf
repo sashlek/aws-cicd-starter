@@ -1,12 +1,13 @@
-# Use default VPC
+# Use default VPC and get its subnets
 data "aws_vpc" "default" {
   default = true
 }
 
-# Get a specific default subnet in the default VPC
-data "aws_subnet" "default" {
-  vpc_id = data.aws_vpc.default.id
-  default_for_az = true
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
 # Security Group allowing SSH and HTTP
@@ -64,10 +65,8 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "app_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
-  subnet_id     = data.aws_subnet.default.id
+  subnet_id     = data.aws_subnets.default.ids[0]
   vpc_security_group_ids = [aws_security_group.app_sg.id]
-
-  # Optional: if you want to use an existing key pair, specify its name here
   key_name      = aws_key_pair.deployer.key_name
 
   associate_public_ip_address = true
