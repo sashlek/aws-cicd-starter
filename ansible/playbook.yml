@@ -33,11 +33,6 @@
         groups: docker
         append: yes
 
-    - name: Run a test Nginx container
-      docker_container:
-        name: test-web
-        image: nginx:alpine
-        state: started
-        restart_policy: always
-        published_ports:
-          - "80:80"
+    - name: Run a test Nginx container via shell
+      shell: docker run -d --name test-web -p 80:80 --restart always nginx:alpine
+      ignore_errors: true
