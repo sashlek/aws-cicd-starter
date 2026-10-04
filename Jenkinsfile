@@ -3,6 +3,10 @@ pipeline {
         label 'jenkins-agent'
     }
 
+    parameters {
+        choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Choose whether to provision or destroy infrastructure')
+    }
+
     environment {
         AWS_REGION = 'eu-central-1'
     }
@@ -15,28 +19,42 @@ pipeline {
             }
         }
 
-        stage('Terraform Provision') {
+        stage('Terraform Action') {
             steps {
                 dir('terraform') {
                     echo 'Initializing Terraform...'
                     sh 'terraform init'
                     
-                    echo 'Applying Terraform infrastructure...'
-                    // We pass the Jenkins agent public SSH key dynamically to Terraform
-                    sh 'terraform apply -auto-approve -var="public_key_content=$(cat ~/.ssh/jenkins-agent.pub)"'
+                    script {
+                        // Read public key into a variable to avoid dumping it loudly in logs
+                        def pubKey = sh(script: 'cat ~/.ssh/jenkins-agent.pub', returnStdout: true).trim()
+                        
+                        if (params.ACTION == 'apply') {
+                            echo 'Applying Terraform infrastructure...'
+                            withEnv(["TF_VAR_public_key_content=${pubKey}"]) {
+                                sh 'terraform apply -auto-approve'
+                            }
+                        } else if (params.ACTION == 'destroy') {
+                            echo 'Destroying Terraform infrastructure...'
+                            withEnv(["TF_VAR_public_key_content=${pubKey}"]) {
+                                sh 'terraform destroy -auto-approve'
+                            }
+                        }
+                    }
                 }
             }
         }
 
         stage('Ansible Configuration') {
+            when {
+                expression { params.ACTION == 'apply' }
+            }
             steps {
                 dir('terraform') {
                     script {
-                        // Extract the newly created EC2 instance public IP dynamically
                         def instanceIp = sh(script: "terraform output -raw instance_public_ip", returnStdout: true).trim()
                         echo "Target EC2 Public IP is: ${instanceIp}"
                         
-                        // Dynamically generate the Ansible inventory file with the correct IP and SSH key
                         dir('../ansible') {
                             writeFile file: 'inventory.ini', text: "[app_servers]\n${instanceIp} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/jenkins-agent\n"
                             echo "Generated dynamic inventory.ini successfully."
@@ -54,7 +72,7 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully! Infrastructure is up, configured, and running.'
+            echo 'Pipeline completed successfully!'
         }
         failure {
             echo 'Pipeline failed. Check the console logs above for details.'
