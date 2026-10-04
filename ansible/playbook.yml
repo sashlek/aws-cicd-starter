@@ -33,6 +33,21 @@
         groups: docker
         append: yes
 
-    - name: Run a test Nginx container via shell
-      shell: docker run -d --name test-web -p 80:80 --restart always nginx:alpine
-      ignore_errors: true
+    - name: Create web root directory on remote instance
+      file:
+        path: /opt/webapp
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Copy custom portfolio index.html
+      copy:
+        src: ../web/index.html
+        dest: /opt/webapp/index.html
+
+    - name: Remove existing test-web container if running
+      shell: docker rm -f test-web || true
+
+    - name: Run Nginx container with custom portfolio page
+      shell: docker run -d --name test-web -p 80:80 -v /opt/webapp/index.html:/usr/share/nginx/html/index.html:ro --restart always nginx:alpine

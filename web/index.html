@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS-CICD-Starter | Portfolio Showcase</title>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 30px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #58a6ff;
+            font-size: 24px;
+            margin-top: 0;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 15px;
+        }
+        .status {
+            display: inline-block;
+            background-color: #238636;
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .stack-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stack-item {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            padding: 12px;
+            border-radius: 4px;
+        }
+        .stack-item strong {
+            color: #79c0ff;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #8b949e;
+            text-align: center;
+            border-top: 1px solid #30363d;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status">● DEPLOYMENT SUCCESSFUL</div>
+        <h1>AWS-CICD-Starter</h1>
+        <p>Fully automated Infrastructure as Code (IaC) and CI/CD pipeline showcase, provisioned from a self-hosted Proxmox/Docker homelab directly to AWS Cloud.</p>
+        
+        <div class="stack-grid">
+            <div class="stack-item">
+                <strong>Provisioning:</strong><br> Terraform v1.16 + AWS Provider
+            </div>
+            <div class="stack-item">
+                <strong>Configuration:</strong><br> Ansible Playbooks
+            </div>
+            <div class="stack-item">
+                <strong>Orchestration:</strong><br> Jenkins (WebSocket Agent)
+            </div>
+            <div class="stack-item">
+                <strong>Runtime:</strong><br> Docker / Nginx Alpine on AWS EC2
+            </div>
+        </div>
+
+        <div class="footer">
+            Designed & Maintained by Saša Lekić | Local-First DevOps Lab
+        </div>
+    </div>
+</body>
+</html>
