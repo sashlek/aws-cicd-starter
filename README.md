@@ -1,4 +1,4 @@
-![AWS-CICD-Starter Dashboard](./assets/screenshot.png)
+
 
 🚀 AWS-CICD-Starter: Hybrid Homelab to Cloud Pipeline
 
@@ -66,3 +66,5 @@ Hybrid Homelab Networking: Solved local-to-cloud webhook delivery without openin
 Agent-Master Resilience: Migrated legacy fragile SSH-based Jenkins slave launching to robust, container-friendly Inbound WebSocket JNLP backed by a persistent systemd service daemon.
 
 AWS MTU Black Hole Mitigation: Resolved silent browser HTTP hanging issues by embedding automatic TCP MSS clamping (net.ipv4.tcp_base_mss = 1024) directly into the automated Ansible configuration phase.
+
+![AWS-CICD-Starter Dashboard](./assets/AWS-CICD-Starter.jpg)
