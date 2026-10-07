@@ -16,6 +16,16 @@
       apt:
         update_cache: yes
 
+    - name: Fix AWS MTU black hole / TCP MSS clamping for external browsers
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: yes
+      loop:
+        - { name: 'net.ipv4.tcp_mtu_probing', value: '1' }
+        - { name: 'net.ipv4.tcp_base_mss', value: '1024' }
+
     - name: Install Docker from Ubuntu official repositories
       apt:
         name: docker.io
