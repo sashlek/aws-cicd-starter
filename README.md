@@ -58,5 +58,8 @@ When you are done testing, destroy the infrastructure:
 
 cd terraform
 terraform destroy
+
+
+
 ---
 
