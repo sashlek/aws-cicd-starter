@@ -1,65 +1,29 @@
-# AWS DevOps Starter Project
+🚀 AWS-CICD-Starter: Hybrid Homelab to Cloud Pipeline
+A production-grade, fully automated CI/CD pipeline and Infrastructure as Code (IaC) solution. This project demonstrates how to orchestrate a hybrid on-premise homelab (Proxmox + Hyper-V) to seamlessly provision, configure, and deploy immutable infrastructure directly to AWS Cloud.
 
-A simple end-to-end DevOps starter project built to learn and demonstrate infrastructure provisioning, configuration management, and CI/CD pipelines using Terraform, Ansible, and Jenkins.
+🏗️ Architecture & Infrastructure Topology
+Unlike generic tutorials that run entirely inside managed cloud runners, this project bridges a Local-First self-hosted homelab with enterprise-grade cloud services:
 
-## What this project does
+Jenkins Master Node: Hosted inside a dedicated Docker container running on a Windows 10 IoT Hyper-V Virtual Machine (192.168.1.3).
+Jenkins Inbound (JNLP) Agent: Isolated inside a dedicated Proxmox LXC Container (192.168.1.201) communicating securely via WebSockets.
+Trigger Mechanism: Instant GitHub Webhooks tunneled securely via Cloudflare Tunnels, bypassing local CGNAT/firewalls for real-time build execution on every git push.
+Provisioning Layer: Terraform v1.16 dynamically provisions AWS EC2 instances (t3.micro), security groups, subnets, and dynamic SSH key pairs.
+Configuration Management: Ansible Playbooks automatically harden the remote Linux kernel (fixing MTU/MSS clamping for robust browser delivery), install Docker, and deploy a custom portfolio web container.
+🛠️ Tech Stack & Tooling
+Orchestration: Jenkins (Master-Agent architecture with WebSocket JNLP)
+Provisioning (IaC): Terraform, AWS Provider
+Configuration Management: Ansible, Jinja2 dynamic inventory generation
+Containerization: Docker, Nginx Alpine
+Networking & Security: Cloudflare Tunnels (Secure Webhook ingress), OpenSSH key-based authentication, Linux sysctl kernel tuning
+Homelab Infrastructure: Proxmox VE, Hyper-V, LXC, Docker
+⚙️ Pipeline Lifecycle (Jenkinsfile)
+The pipeline is fully declarative and parameterized, allowing engineers to choose the infrastructure state directly from the Jenkins UI:
 
-1. **Terraform** provisions an AWS EC2 instance (`t3.micro`) inside the default VPC, creates a Security Group allowing SSH (22) and HTTP (80), and registers your local SSH public key.
-   
-2. **Ansible** connects to the newly created EC2 instance, cleans up broken repos, installs Docker, and runs a test Nginx container to verify everything works.
-
-3. **Jenkins** automates the whole process using a declarative `Jenkinsfile`.
-
----
-
-## Project Structure
-
-```text
-aws-cicd-starter/
-├── terraform/          # Infrastructure as Code (AWS VPC, EC2, SG)
-├── ansible/            # Configuration Management (Docker installation playbook)
-├── app/                # Placeholder for application code
-└── Jenkinsfile         # Automated CI/CD Pipeline definition
-
-Prerequisites:
-
-AWS Account (Free Tier or active credits) & AWS CLI configured (aws configure)
-Terraform installed locally
-Ansible installed locally
-A working SSH key pair (~/.ssh/id_ed25519.pub)
-
-
-How to Run It Manually:
-
-1. Provision Infrastructure (Terraform)
-
-Navigate to the terraform folder, initialize, and apply:
-
-cd terraform
-terraform init
-terraform plan
-terraform apply
-
-Note: Make sure to check/update your public key path in main.tf if it differs from the default.
-
-
-2. Configure Server & Deploy App (Ansible)
-
-After Terraform finishes, copy the output IP address and update ansible/inventory.ini. Then run the playbook:
-
-cd ansible
-ansible-playbook -i inventory.ini playbook.yml
-Open your browser and visit http://&lt;YOUR_EC2_IP&gt; to see the Welcome to nginx! page.
-
-
-3. Clean up
-
-When you are done testing, destroy the infrastructure:
-
-cd terraform
-terraform destroy
-
-
-
----
-
+Checkout SCM: Clones the repository dynamically based on the latest commit.
+Terraform Action (apply or destroy): * Initializes the backend and safely injects ephemeral agent public SSH keys. * Dynamically evaluates AWS VPC subnets and spins up the EC2 instance.
+Dynamic Inventory Generation: Extracts the newly created EC2 public IP via Terraform outputs and injects it on-the-fly into an Ansible temporary inventory file.
+Ansible Provisioning: * Applies kernel-level network fixes (tcp_mtu_probing and tcp_base_mss) to eliminate packet drop anomalies. * Installs and configures Docker engine. * Deploys the custom portfolio application inside an Nginx Alpine container mapped to port 80.
+🎯 Key Engineering Challenges Solved
+Hybrid Homelab Networking: Solved local-to-cloud webhook delivery without opening vulnerable home router ports by implementing secure Cloudflare quick tunnels.
+Agent-Master Resilience: Migrated legacy fragile SSH-based Jenkins slave launching to robust, container-friendly Inbound WebSocket JNLP backed by a persistent systemd service daemon.
+AWS MTU Black Hole Mitigation: Resolved silent browser HTTP hanging issues by embedding automatic TCP MSS clamping (net.ipv4.tcp_base_mss = 1024) directly into the automated Ansible configuration phase.
